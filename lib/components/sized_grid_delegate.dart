@@ -12,7 +12,8 @@ class SizedGridDelegate extends SliverGridDelegate {
   final IndexedSizeBuilder sizeBuilder;
   final int itemCount;
 
-  /// Whether the [GridView] or [SizedListView] will always go through the layout phase when the state updates.
+  /// Whether the [GridView] or [SizedListView] will always
+  /// go through the layout phase when the state updates.
   final bool alwaysRelayout;
 
   /// The instance that defines cached sizes of all items.
@@ -26,8 +27,13 @@ class SizedGridDelegate extends SliverGridDelegate {
 
   @override
   bool shouldRelayout(SizedGridDelegate oldDelegate) {
-    return alwaysRelayout
-        || itemCount != oldDelegate.itemCount
-        || _cachedSizes != oldDelegate._cachedSizes;
+    if (alwaysRelayout
+     || itemCount != oldDelegate.itemCount
+     || _cachedSizes != oldDelegate._cachedSizes) {
+      _cachedSizes = null;
+      return true;
+    }
+
+    return false;
   }
 }
