@@ -6,7 +6,7 @@ class SizedGridDelegate extends SliverGridDelegate {
   SizedGridDelegate({
     required this.sizeBuilder,
     required this.itemCount,
-    this.alwaysRelayout = false,
+    this.alwaysRelayout = true,
   });
 
   final IndexedSizeBuilder sizeBuilder;
@@ -17,20 +17,37 @@ class SizedGridDelegate extends SliverGridDelegate {
   final bool alwaysRelayout;
 
   /// The instance that defines cached sizes of all items.
-  List<Size>? _cachedSizes;
+  SizedGridLayout? _cachedLayout;
+
+  /// The instance that defines a previous constraints in [getLayout].
+  SliverConstraints? _oldConstraints;
 
   @override
   SliverGridLayout getLayout(SliverConstraints constraints) {
-    _cachedSizes ??= List.generate(itemCount, (index) => sizeBuilder(constraints, index));
-    return SizedGridLayout(sizes: _cachedSizes!);
+    final double newMainAxisExtent = constraints.viewportMainAxisExtent;
+    final double oldCrossAxisExtent = _oldConstraints?.crossAxisExtent ?? 0.0;
+    final double newCrossAxisExtent = constraints.crossAxisExtent;
+
+    // An unnecessary prevention of calculations.
+    if (newMainAxisExtent == 0.0
+     || newCrossAxisExtent == 0.0) {
+      return SizedGridLayout(sizes: []);
+    }
+
+    if (oldCrossAxisExtent != newCrossAxisExtent) {
+      _cachedLayout = null;
+      _oldConstraints = constraints;
+    }
+
+    return _cachedLayout ??= SizedGridLayout(
+      sizes: List.generate(itemCount, (index) => sizeBuilder(constraints, index))
+    );
   }
 
   @override
   bool shouldRelayout(SizedGridDelegate oldDelegate) {
-    if (alwaysRelayout
-     || itemCount != oldDelegate.itemCount
-     || _cachedSizes != oldDelegate._cachedSizes) {
-      _cachedSizes = null;
+    if (alwaysRelayout || itemCount != oldDelegate.itemCount) {
+      _cachedLayout = null;
       return true;
     }
 

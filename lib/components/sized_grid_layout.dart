@@ -8,6 +8,7 @@ class SizedGridLayout extends SliverGridLayout {
 
   /// Returns the scroll offset for a given scroll index.
   double scrollOffsetOf(int index) {
+    if (index <= 0) return 0.0;
     return sizes.sublist(0, index).fold(0, (cum, size) => cum + size.height);
   }
 
@@ -18,11 +19,14 @@ class SizedGridLayout extends SliverGridLayout {
 
   @override
   SliverGridGeometry getGeometryForChildIndex(int index) {
+    final bool isEmpty = index == -1;
+
+    assert(sizes.length <= index);
     return SliverGridGeometry(
       scrollOffset: scrollOffsetOf(index),
       crossAxisOffset: 0,
-      mainAxisExtent: sizes[index].height,
-      crossAxisExtent: sizes[index].width,
+      mainAxisExtent: isEmpty ? 0.0 : sizes[index].height,
+      crossAxisExtent: isEmpty ? 0.0 : sizes[index].width,
     );
   }
 
